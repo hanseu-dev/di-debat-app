@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Default Body Style */
+body {
+  @apply bg-dark-bg text-text-primary font-sans antialiased overflow-x-hidden overflow-y-auto;
+}
+
+/* Custom Scrollbar (Biar scroll chat kelihatan modern) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-panel-bg;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-pro;
+}
+
+/* Helper Class untuk Glassmorphism (Kaca Gelap) */
+.glass-panel {
+  @apply bg-panel-bg/80 backdrop-blur-md border border-white/10; /* Ensure Tailwind is configured */
+}
