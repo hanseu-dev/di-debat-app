@@ -68,8 +68,8 @@ const DashboardPage = () => {
       }
 
       await axios.post(`${API_URL}/motions`, {
-            topic: topic,           // Ambil dari state topic
-            description: description // Ambil dari state description
+            topic: newMotion,
+            description: newMotion.description
         }, {
             headers: { Authorization: `Bearer ${token}` }
         });
