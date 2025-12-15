@@ -234,7 +234,7 @@ const RoomPage = () => {
   // --- ACTIONS ---
   const fetchRoomDetails = async () => {
     try {
-      const res = await axios.get(`${API_URL}/room/${roomId}`);
+      const res = await axios.get(`${API_URL}/rooms/id/${roomId}`);
       const data = res.data;
       if (!data.config) data.config = { format: 'Asian Parliamentary', max_rounds: 3 };
       setRoomData(data);
