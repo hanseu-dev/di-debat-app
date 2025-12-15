@@ -35,12 +35,21 @@ const DashboardPage = () => {
 
   const fetchMotions = async () => {
     try {
+      // PERBAIKAN: Ambil token dulu dari dompet (localStorage)
+      const token = localStorage.getItem('token'); 
+      
+      // Kalau token gak ada, jangan lanjut (suruh login)
+      if (!token) return; 
+
+      // Panggil API dengan URL yang benar & Token
       const res = await axios.get(`${API_URL}/motions`, {
-    headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
+      
       setMotions(res.data);
     } catch (err) {
       console.error("Gagal load mosi", err);
+      // Opsional: toast.error("Gagal memuat daftar mosi");
     }
   };
 
@@ -59,8 +68,8 @@ const DashboardPage = () => {
       }
 
       await axios.post(`${API_URL}/motions`, {
-            topic: newTopic,
-            description: newDesc
+            topic: topic,           // Ambil dari state topic
+            description: description // Ambil dari state description
         }, {
             headers: { Authorization: `Bearer ${token}` }
         });
