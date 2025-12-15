@@ -35,28 +35,28 @@ const DashboardPage = () => {
   const fetchMotions = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log("🔍 Fetching motions... Token ada?", !!token); // Cek Token
-      
-      // Hapus if(!token) return sementara, biar kita tau kalau token null
       
       const res = await axios.get(`${API_URL}/motions`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: { 
+            // 1. Auth Token (Wajib)
+            Authorization: token ? `Bearer ${token}` : '',
+            // 2. HEADER SAKTI (Supaya Ngrok tidak memblokir)
+            "ngrok-skip-browser-warning": "69420" 
+        }
       });
 
-      console.log("📦 HASIL DARI SERVER:", res.data); // <--- LIHAT INI DI CONSOLE CHROME
+      console.log("📦 HASIL DARI SERVER:", res.data); 
 
       if (Array.isArray(res.data)) {
         setMotions(res.data);
+      } else if (res.data && Array.isArray(res.data.data)) {
+        setMotions(res.data.data);
       } else {
-        console.error("❌ Data bukan array!", res.data);
         setMotions([]);
       }
     } catch (err) {
       console.error("❌ Gagal fetch mosi:", err);
-      // Cek apakah errornya Network Error (Ngrok mati/CORS) atau 404/500
-      if (err.message === "Network Error") {
-          toast.error("Gagal koneksi ke server (Cek Ngrok!)");
-      }
+      setMotions([]);
     }
   };
 
