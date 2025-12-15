@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { Mic2, Zap, AlertCircle, CheckCircle, Mail, User, Lock } from 'lucide-react'; 
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true); 
@@ -61,7 +62,7 @@ const LoginPage = () => {
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const url = `http://localhost:3000${endpoint}`;
+      const url = `${API_URL}${endpoint}`;
       
       const res = await axios.post(url, formData);
 
