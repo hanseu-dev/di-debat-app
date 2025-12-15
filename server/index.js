@@ -302,11 +302,29 @@ app.get('/rooms/public', async (req, res) => {
 
 app.get('/rooms/id/:roomId', async (req, res) => {
   try {
-    const {roomId} = req.params;
-    const result = await pool.query(`SELECT id, room_code, topic, status, config, host_user_id, is_locked, is_public, ai_verdict FROM rooms WHERE id = $1`, [roomId]);
-    if (result.rows.length === 0) return res.status(404).json({ msg: "Room tidak ditemukan" });
+    const { roomId } = req.params;
+    
+    // [DEBUG SERVER] Tambahkan ini 👇
+    console.log(`🔔 [BACKEND] Request masuk: GET Detail Room ID: ${roomId}`);
+
+    const result = await pool.query(
+        `SELECT id, room_code, topic, status, config, host_user_id, is_locked, is_public, ai_verdict 
+         FROM rooms WHERE id = $1`, 
+        [roomId]
+    );
+
+    if (result.rows.length === 0) {
+        console.log(`⚠️ [BACKEND] Room ID ${roomId} TIDAK DITEMUKAN di Database!`); // Debug kalau kosong
+        return res.status(404).json({ msg: "Room tidak ditemukan" });
+    }
+
+    console.log(`✅ [BACKEND] Room ditemukan: ${result.rows[0].topic}`); // Debug kalau sukses
     res.json(result.rows[0]);
-  } catch (err) { res.status(500).send("Error detail room"); }
+
+  } catch (err) { 
+    console.error("❌ [BACKEND] Error SQL:", err);
+    res.status(500).send("Error detail room"); 
+  }
 });
 
 app.get('/rooms/:id/votes', authenticateToken, async (req, res) => {

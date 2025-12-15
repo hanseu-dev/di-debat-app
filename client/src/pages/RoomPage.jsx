@@ -233,15 +233,52 @@ const RoomPage = () => {
 
   // --- ACTIONS ---
   const fetchRoomDetails = async () => {
+    // [DEBUG 1] Cek apakah fungsi dipanggil
+    console.log("🚀 [FRONTEND] Memulai fetchRoomDetails...");
+    
     try {
-      const res = await axios.get(`${API_URL}/rooms/id/${roomId}`);
+      const token = localStorage.getItem('token');
+      const targetURL = `${API_URL}/rooms/id/${roomId}`; // Pastikan URL-nya benar
+
+      // [DEBUG 2] Cek URL & Token sebelum dikirim
+      console.log(`🎯 [FRONTEND] Menembak ke: ${targetURL}`);
+      console.log(`🔑 [FRONTEND] Token ada? ${!!token ? "Ya" : "Tidak"}`);
+
+      const res = await axios.get(targetURL, {
+         headers: { 
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true" 
+         }
+      });
+      
+      // [DEBUG 3] Kalau sukses, apa isinya?
+      console.log("📦 [FRONTEND] Respon Diterima:", res.data);
+
       const data = res.data;
       if (!data.config) data.config = { format: 'Asian Parliamentary', max_rounds: 3 };
       setRoomData(data);
+      
       if (data.ai_verdict) setAiResult(data.ai_verdict);
-      if(data.status) { setGameStatus(data.status); if(data.status === 'FINISHED') setShowOverlay(true); }
-      if(socket && data.room_code) { socket.emit('join_room', data.room_code); socket.emit('sync_game_state', data.room_code); }
-    } catch (err) { }
+      if(data.status) { 
+          setGameStatus(data.status); 
+          if(data.status === 'FINISHED') setShowOverlay(true); 
+      }
+      if(socket && data.room_code) { 
+          socket.emit('join_room', data.room_code); 
+          socket.emit('sync_game_state', data.room_code); 
+      }
+    } catch (err) { 
+       // [DEBUG 4] Kalau error, kenapa?
+       console.error("❌ [FRONTEND] ERROR FETCH:", err);
+       console.error("❌ [FRONTEND] URL Was:", `${API_URL}/rooms/id/${roomId}`);
+       if (err.response) {
+           console.error("❌ [FRONTEND] Server Response Status:", err.response.status);
+           console.error("❌ [FRONTEND] Server Response Data:", err.response.data);
+       } else if (err.request) {
+           console.error("❌ [FRONTEND] Tidak ada respon dari server (Network Error/Ngrok Block)");
+       }
+       toast.error("Gagal memuat detail room");
+    }
   };
 
   const fetchParticipants = async () => {
