@@ -250,7 +250,7 @@ app.post('/rooms/join', authenticateToken, async (req, res) => {
 
 app.get('/rooms/:roomId/participants', authenticateToken, async (req, res) => {
   try {
-    const { roomId } = req.params;
+    const {roomId} = req.params;
     const result = await pool.query(`SELECT p.side, p.role, p.seat_number, u.username FROM participants p JOIN users u ON p.user_id = u.id WHERE p.room_id = $1`, [roomId]);
     res.json(result.rows);
   } catch (err) { res.status(500).send("Gagal ambil data kursi"); }
