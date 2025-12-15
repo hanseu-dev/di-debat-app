@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
-// PERBAIKAN: Menambahkan icon User
-import { LogOut, Users, Radio, Play, Plus, X, ArrowRight, MessageSquare, Globe, Hash, User, Trophy, Menu } from 'lucide-react';
+import { LogOut, Users, Radio, Play, Plus, X, ArrowRight, MessageSquare, Globe, User, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
@@ -11,7 +10,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   
-  // State baru: Motions
+  // State Motions (Default Array Kosong biar aman)
   const [motions, setMotions] = useState([]);
   
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -31,17 +30,28 @@ const DashboardPage = () => {
   const x1 = useTransform(x, v => v * 0.5); const y1 = useTransform(y, v => v * 0.5);
   const x2 = useTransform(x, v => v * -0.5); const y2 = useTransform(y, v => v * -0.5);
 
-  // --- DEFINISI FUNGSI DI ATAS USE EFFECT ---
+  // --- FUNGSI-FUNGSI ---
 
   const fetchMotions = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) return;
+
       const res = await axios.get(`${API_URL}/motions`, {
-    headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
-      setMotions(res.data);
+
+      // SAFETY CHECK: Pastikan data yang masuk adalah Array
+      if (Array.isArray(res.data)) {
+        setMotions(res.data);
+      } else if (res.data && Array.isArray(res.data.data)) {
+        setMotions(res.data.data);
+      } else {
+        setMotions([]); 
+      }
     } catch (err) {
       console.error("Gagal load mosi", err);
+      // Jangan setMotions null, biarkan array kosong
     }
   };
 
@@ -54,13 +64,17 @@ const DashboardPage = () => {
   const createMotion = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Validasi
       if (!newMotion.topic.trim()) {
           toast.error("Topik mosi wajib diisi!");
           return;
       }
 
-      await axios.post(`${API_URL}/motions`, {
-            topic: newMotion,
+      // PERBAIKAN 1: Simpan hasil axios ke variabel 'res'
+      const res = await axios.post(`${API_URL}/motions`, {
+            // PERBAIKAN 2: Ambil string topic dari object newMotion
+            topic: newMotion.topic, 
             description: newMotion.description
         }, {
             headers: { Authorization: `Bearer ${token}` }
@@ -68,7 +82,17 @@ const DashboardPage = () => {
       
       toast.success("Mosi berhasil dibuat!");
       setShowCreateModal(false);
-      navigate(`/motion/${res.data.motion.id}`);
+      
+      // Reset Form
+      setNewMotion({ topic: '', description: '' });
+      
+      // Refresh Data Mosi
+      fetchMotions();
+
+      // Opsional: Langsung masuk ke detail motion (pastikan struktur res benar)
+      if(res.data && res.data.motion && res.data.motion.id) {
+          navigate(`/motion/${res.data.motion.id}`);
+      }
       
     } catch (err) {
       console.error(err);
@@ -139,7 +163,7 @@ const DashboardPage = () => {
 
           {/* Bagian Kanan: Tombol Navigasi */}
           <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto justify-between md:justify-end overflow-x-auto pb-1 md:pb-0 no-scrollbar">
-            {/* TOMBOL LEADERBOARD BARU */}
+            {/* TOMBOL LEADERBOARD */}
            <button 
               onClick={() => navigate('/leaderboard')} 
               className="w-10 h-10 rounded-full bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all shrink-0"
@@ -147,8 +171,8 @@ const DashboardPage = () => {
             >
               <Trophy size={18} />
             </button>
-             
-             {/* Tombol Profile Baru */}
+              
+             {/* Tombol Profile */}
              <button 
                 onClick={() => navigate('/profile')} 
                 className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 md:px-4 py-2 rounded-lg text-xs font-bold text-gray-300 hover:text-white transition-all shadow-lg shrink-0"
@@ -212,12 +236,8 @@ const DashboardPage = () => {
               <div className="h-px bg-white/10 flex-1"></div>
            </div>
 
-           {motions.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl bg-white/5">
-                 <p className="text-gray-500 text-sm md:text-base">Belum ada mosi yang dibuat.</p>
-                 <button onClick={() => setShowCreateModal(true)} className="text-pro text-xs md:text-sm font-bold mt-2 hover:underline">Buat topik pertama!</button>
-              </div>
-           ) : (
+           {/* PERBAIKAN 3: Safety Check Array.isArray agar tidak error map is not function */}
+           {Array.isArray(motions) && motions.length > 0 ? (
               <div className="space-y-3 md:space-y-4">
                  {motions.map((motionItem) => (
                     <motion.div 
@@ -226,26 +246,31 @@ const DashboardPage = () => {
                       className="bg-[#1a1a1a] border border-white/10 rounded-xl p-4 md:p-6 hover:border-blue-400/50 transition-all group cursor-pointer w-full relative overflow-hidden"
                       onClick={() => navigate(`/motion/${motionItem.id}`)} 
                     >
-                       <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-0">
-                          <div className="flex-1 min-w-0 w-full">
-                             <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <span className="text-[10px] text-pro font-bold tracking-widest uppercase bg-pro/10 px-2 py-1 rounded whitespace-nowrap">TOPIC #{motionItem.id}</span>
-                                <span className="text-[10px] text-gray-500 truncate">by <span className="text-white font-bold">{motionItem.creator_name}</span></span>
-                             </div>
-                             <h4 className="text-white font-bold text-lg md:text-xl mb-2 group-hover:text-blue-400 transition-colors line-clamp-2 md:line-clamp-none">{motionItem.topic}</h4>
-                             <p className="text-gray-400 text-xs md:text-sm line-clamp-2 max-w-2xl">{motionItem.description || "Tidak ada deskripsi."}</p>
-                          </div>
-                          
-                          <div className="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto md:text-right border-t border-white/5 pt-3 md:pt-0 md:border-0 mt-2 md:mt-0">
-                             <div className="flex items-center gap-2 md:block">
-                                <div className="text-xl md:text-3xl font-black text-white/80 group-hover:text-white transition-colors">{motionItem.active_rooms || 0}</div>
-                                <div className="text-[10px] text-gray-500 uppercase tracking-widest">Room Aktif</div>
-                             </div>
-                             <ArrowRight className="md:hidden text-white/20 w-5 h-5" />
-                          </div>
-                       </div>
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-0">
+                           <div className="flex-1 min-w-0 w-full">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                 <span className="text-[10px] text-pro font-bold tracking-widest uppercase bg-pro/10 px-2 py-1 rounded whitespace-nowrap">TOPIC #{motionItem.id}</span>
+                                 <span className="text-[10px] text-gray-500 truncate">by <span className="text-white font-bold">{motionItem.creator_name}</span></span>
+                              </div>
+                              <h4 className="text-white font-bold text-lg md:text-xl mb-2 group-hover:text-blue-400 transition-colors line-clamp-2 md:line-clamp-none">{motionItem.topic}</h4>
+                              <p className="text-gray-400 text-xs md:text-sm line-clamp-2 max-w-2xl">{motionItem.description || "Tidak ada deskripsi."}</p>
+                           </div>
+                           
+                           <div className="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto md:text-right border-t border-white/5 pt-3 md:pt-0 md:border-0 mt-2 md:mt-0">
+                              <div className="flex items-center gap-2 md:block">
+                                 <div className="text-xl md:text-3xl font-black text-white/80 group-hover:text-white transition-colors">{motionItem.active_rooms || 0}</div>
+                                 <div className="text-[10px] text-gray-500 uppercase tracking-widest">Room Aktif</div>
+                              </div>
+                              <ArrowRight className="md:hidden text-white/20 w-5 h-5" />
+                           </div>
+                        </div>
                     </motion.div>
                  ))}
+              </div>
+           ) : (
+              <div className="text-center py-12 border border-dashed border-white/10 rounded-2xl bg-white/5">
+                 <p className="text-gray-500 text-sm md:text-base">Belum ada mosi yang dibuat atau gagal memuat data.</p>
+                 <button onClick={() => setShowCreateModal(true)} className="text-pro text-xs md:text-sm font-bold mt-2 hover:underline">Buat topik pertama!</button>
               </div>
            )}
         </div>
