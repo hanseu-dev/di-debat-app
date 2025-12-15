@@ -35,21 +35,12 @@ const DashboardPage = () => {
 
   const fetchMotions = async () => {
     try {
-      // PERBAIKAN: Ambil token dulu dari dompet (localStorage)
-      const token = localStorage.getItem('token'); 
-      
-      // Kalau token gak ada, jangan lanjut (suruh login)
-      if (!token) return; 
-
-      // Panggil API dengan URL yang benar & Token
       const res = await axios.get(`${API_URL}/motions`, {
-        headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` }
       });
-      
       setMotions(res.data);
     } catch (err) {
       console.error("Gagal load mosi", err);
-      // Opsional: toast.error("Gagal memuat daftar mosi");
     }
   };
 
@@ -68,8 +59,8 @@ const DashboardPage = () => {
       }
 
       await axios.post(`${API_URL}/motions`, {
-            topic: newMotion,
-            description: newMotion.description
+            topic: newTopic,
+            description: newDesc
         }, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -88,7 +79,7 @@ const DashboardPage = () => {
     if(!joinCode) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/rooms/join`, 
+      const res = await axios.post('http://localhost:3000/rooms/join', 
         { room_code: joinCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -227,7 +218,6 @@ const DashboardPage = () => {
               </div>
            ) : (
               <div className="space-y-3 md:space-y-4">
-                
                  {motions.map((motionItem) => (
                     <motion.div 
                       key={motionItem.id}

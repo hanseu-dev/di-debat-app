@@ -29,9 +29,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_negara_di_debat';
 let roomTimeouts = {}; 
 
 app.use(cors({
-    origin: '*', // <--- GANTI JADI BINTANG (Artinya: Semua boleh masuk)
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true // (Catatan: kalau error, coba hapus baris credentials ini nanti)
+    origin: '*', // Bolehkan semua asal
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    // credentials: true // <--- JANGAN PAKAI INI KALAU ORIGINNYA BINTANG (*)
 }));
 app.use(express.json()); 
 
