@@ -117,7 +117,12 @@ const RoomPage = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) setUser(JSON.parse(storedUser));
     
-    socket = io(API_URL);
+    socket = io(API_URL, {
+      transports: ['polling', 'websocket'], // Paksa polling dulu baru websocket
+      extraHeaders: {
+        "ngrok-skip-browser-warning": "true" // <--- INI KUNCINYA SUPAYA SOCKET TEMBUS
+      }
+    });
 
     fetchRoomDetails();
     fetchParticipants();
