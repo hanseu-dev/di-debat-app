@@ -28,7 +28,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_negara_di_debat';
 // Variable Global untuk Smart Timer
 let roomTimeouts = {}; 
 
-app.use(cors());
+app.use(cors({
+    origin: '*', // <--- GANTI JADI BINTANG (Artinya: Semua boleh masuk)
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true // (Catatan: kalau error, coba hapus baris credentials ini nanti)
+}));
 app.use(express.json()); 
 
 // ==========================================
