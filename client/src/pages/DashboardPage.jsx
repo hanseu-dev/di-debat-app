@@ -35,6 +35,7 @@ const DashboardPage = () => {
 
   const fetchMotions = async () => {
     try {
+      const token = localStorage.getItem('token');
       const res = await axios.get(`${API_URL}/motions`, {
     headers: { Authorization: `Bearer ${token}` }
       });
