@@ -214,7 +214,7 @@ const RoomPage = () => {
       if (readingInterval) clearInterval(readingInterval);
       socket.disconnect();
       const token = localStorage.getItem('token');
-      if (token && roomId) axios.post('${API_URL}/rooms/leave', { room_id: roomId }, { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }).catch(() => {});
+      if (token && roomId) axios.post( `${API_URL}/rooms/leave`, { room_id: roomId }, { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }).catch(() => {});
     };
   }, [roomId]); 
 
@@ -300,7 +300,7 @@ const RoomPage = () => {
     try {
       const token = localStorage.getItem('token');
       if(!roomData.room_code) return;
-      await axios.post('${API_URL}/rooms/claim-seat', { room_id: roomId, side, seat_number: seatNum, room_code: roomData.room_code }, { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } });
+      await axios.post(`${API_URL}/rooms/claim-seat`, { room_id: roomId, side, seat_number: seatNum, room_code: roomData.room_code }, { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } });
       fetchParticipants(); 
     } catch (err) { toast.error(err.response?.data?.msg || "Gagal duduk"); }
   };
