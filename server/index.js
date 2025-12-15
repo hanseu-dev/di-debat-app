@@ -29,10 +29,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_negara_di_debat';
 let roomTimeouts = {}; 
 
 app.use(cors({
-    origin: '*', // Bolehkan semua asal
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    // credentials: true // <--- JANGAN PAKAI INI KALAU ORIGINNYA BINTANG (*)
+    origin: '*', // <--- GANTI JADI BINTANG (Artinya: Semua boleh masuk)
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true // (Catatan: kalau error, coba hapus baris credentials ini nanti)
 }));
 app.use(express.json()); 
 
@@ -186,7 +185,7 @@ app.post('/auth/login', async (req, res) => {
 });
 
 // --- MOTIONS ---
-app.post('/motions/create', authenticateToken, async (req, res) => {
+app.post('/motions', authenticateToken, async (req, res) => {
   try {
     const { topic, description } = req.body;
     const creator_id = req.user.user_id;

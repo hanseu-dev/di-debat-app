@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-// PERBAIKAN: Menambahkan X, Minus, Shield, AlertTriangle, User ke dalam import
 import { ArrowLeft, Plus, Users, ArrowRight, Globe, Hash, Clock, Mic2, X, Minus, Shield, AlertTriangle, User } from 'lucide-react'; 
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
@@ -52,12 +51,23 @@ const MotionPage = () => {
       const res = await axios.get(`${API_URL}/motions/${id}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
-      setMotionData(res.data.motion);
-      setRooms(res.data.rooms);
+      
+      // SAFETY CHECK: Pastikan backend mengirim struktur yang benar
+      if (res.data.motion) {
+          setMotionData(res.data.motion);
+          setRooms(res.data.rooms || []);
+      } else {
+          // Fallback jika backend mengirim object langsung
+          setMotionData(res.data);
+          setRooms([]);
+      }
+      
       setLoading(false);
     } catch (err) {
+      console.error(err);
       toast.error("Gagal memuat data mosi");
-      navigate('/dashboard');
+      // navigate('/dashboard'); // Comment dulu biar bisa lihat error kalau ada
+      setLoading(false);
     }
   };
 
@@ -94,7 +104,19 @@ const MotionPage = () => {
     }
   };
 
+  // 1. TAMPILAN LOADING
   if (loading) return <div className="h-screen bg-[#0a0a0a] flex items-center justify-center text-white font-mono animate-pulse">MEMUAT ARENA...</div>;
+
+  // 2. [PERBAIKAN UTAMA] SAFETY CHECK JIKA DATA KOSONG
+  // Ini mencegah error "reading 'id' of undefined"
+  if (!motionData) {
+      return (
+        <div className="h-screen bg-[#0a0a0a] flex flex-col items-center justify-center text-white gap-4">
+            <h2 className="text-xl font-bold text-red-500">Data Mosi Tidak Ditemukan</h2>
+            <button onClick={() => navigate('/dashboard')} className="text-gray-400 hover:text-white underline">Kembali ke Dashboard</button>
+        </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] text-gray-200 font-sans p-6 md:p-12 relative overflow-hidden">
@@ -120,15 +142,18 @@ const MotionPage = () => {
                     <div className="flex justify-between items-start gap-6">
                         <div>
                             <div className="flex items-center gap-2 mb-3">
-                                <span className="text-black bg-pro font-black tracking-widest text-[10px] uppercase px-2 py-1 rounded">TOPIC #{motionData.id}</span>
-                                <span className="text-[10px] text-gray-500 flex items-center gap-1"><Clock size={12}/> {new Date(motionData.created_at).toLocaleDateString()}</span>
+                                {/* PERBAIKAN: Gunakan Optional Chaining (?.) untuk keamanan ekstra */}
+                                <span className="text-black bg-pro font-black tracking-widest text-[10px] uppercase px-2 py-1 rounded">TOPIC #{motionData?.id}</span>
+                                <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                                    <Clock size={12}/> {motionData?.created_at ? new Date(motionData.created_at).toLocaleDateString() : '-'}
+                                </span>
                             </div>
-                            <h1 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight max-w-4xl">{motionData.topic}</h1>
-                            <p className="text-gray-400 max-w-3xl text-sm leading-relaxed border-l-2 border-white/10 pl-4">{motionData.description || "Tidak ada deskripsi tambahan."}</p>
+                            <h1 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight max-w-4xl">{motionData?.topic}</h1>
+                            <p className="text-gray-400 max-w-3xl text-sm leading-relaxed border-l-2 border-white/10 pl-4">{motionData?.description || "Tidak ada deskripsi tambahan."}</p>
                         </div>
                         <div className="text-right hidden md:block shrink-0">
                             <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Creator</div>
-                            <div className="font-bold text-white text-lg">{motionData.creator_name}</div>
+                            <div className="font-bold text-white text-lg">{motionData?.creator_name || 'Anonim'}</div>
                         </div>
                     </div>
                 </div>
