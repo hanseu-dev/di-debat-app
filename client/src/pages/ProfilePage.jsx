@@ -39,7 +39,7 @@ const ProfilePage = () => {
           navigate('/login');
           return;
       }
-      const res = await axios.get('http://localhost:3000/users/profile', {
+      const res = await axios.get(`${API_URL}/users/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProfile(res.data);

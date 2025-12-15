@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Users, ArrowRight, Globe, Hash, Clock, Mic2, X, Minus, Shield, AlertTriangle, User } from 'lucide-react'; 
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
+import { API_URL } from '../config';
 
 const MotionPage = () => {
   const { id } = useParams(); 
@@ -48,7 +49,7 @@ const MotionPage = () => {
   const fetchMotionDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3000/motions/${id}`, {
+      const res = await axios.get(`${API_URL}/motions/${id}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
       setMotionData(res.data.motion);
@@ -73,7 +74,7 @@ const MotionPage = () => {
   const createRoom = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/rooms/create', 
+      const res = await axios.post(`${API_URL}/rooms/create`, 
         { 
             motion_id: id, 
             config: { format: newRoom.format }, 

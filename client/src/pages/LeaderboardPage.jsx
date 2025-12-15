@@ -37,7 +37,7 @@ const LeaderboardPage = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/users/leaderboard');
+      const res = await axios.get(`${API_URL}/users/leaderboard`);
       setLeaders(res.data);
       setLoading(false);
     } catch (err) { console.error(err); setLoading(false); }

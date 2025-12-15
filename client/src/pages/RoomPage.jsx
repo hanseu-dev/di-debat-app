@@ -13,6 +13,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex'; 
 import io from 'socket.io-client'; 
 import axios from 'axios';
+import { API_URL } from '../config';
 
 // --- KONFIGURASI ROLE ---
 const DEBATE_FORMATS = {
@@ -116,7 +117,7 @@ const RoomPage = () => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) setUser(JSON.parse(storedUser));
     
-    socket = io('http://localhost:3000');
+    socket = io(API_URL);
 
     fetchRoomDetails();
     fetchParticipants();
@@ -208,7 +209,7 @@ const RoomPage = () => {
       if (readingInterval) clearInterval(readingInterval);
       socket.disconnect();
       const token = localStorage.getItem('token');
-      if (token && roomId) axios.post('http://localhost:3000/rooms/leave', { room_id: roomId }, { headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      if (token && roomId) axios.post('${API_URL}/rooms/leave', { room_id: roomId }, { headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
     };
   }, [roomId]); 
 
@@ -228,7 +229,7 @@ const RoomPage = () => {
   // --- ACTIONS ---
   const fetchRoomDetails = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/rooms/id/${roomId}`);
+      const res = await axios.get(`${API_URL}/rooms/${roomId}`);
       const data = res.data;
       if (!data.config) data.config = { format: 'Asian Parliamentary', max_rounds: 3 };
       setRoomData(data);
@@ -241,7 +242,7 @@ const RoomPage = () => {
   const fetchParticipants = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3000/rooms/${roomId}/participants`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${API_URL}/rooms/${roomId}/participants`, { headers: { Authorization: `Bearer ${token}` } });
       setSeats(res.data);
       const myUser = JSON.parse(localStorage.getItem('user'));
       if(myUser) {
@@ -254,7 +255,7 @@ const RoomPage = () => {
   const fetchArguments = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3000/rooms/${roomId}/arguments`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${API_URL}/rooms/${roomId}/arguments`, { headers: { Authorization: `Bearer ${token}` } });
       const formatted = res.data.map(arg => ({
          id: arg.id, role: arg.username, roleTitle: getRoleName(arg.side, 1), side: arg.side || 'PRO', 
          time: new Date(arg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
@@ -270,7 +271,7 @@ const RoomPage = () => {
       try {
           const targetRound = specificRound || currentRoundRef.current; 
           const token = localStorage.getItem('token');
-          const res = await axios.get(`http://localhost:3000/rooms/${roomId}/votes`, { headers: { Authorization: `Bearer ${token}` } });
+          const res = await axios.get(`${API_URL}/rooms/${roomId}/votes`, { headers: { Authorization: `Bearer ${token}` } });
           const currentRoundVotes = res.data.filter(v => parseInt(v.round_number) === parseInt(targetRound));
           const newStats = { PRO: 0, CONTRA: 0 };
           currentRoundVotes.forEach(v => {
@@ -294,7 +295,7 @@ const RoomPage = () => {
     try {
       const token = localStorage.getItem('token');
       if(!roomData.room_code) return;
-      await axios.post('http://localhost:3000/rooms/claim-seat', { room_id: roomId, side, seat_number: seatNum, room_code: roomData.room_code }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post('${API_URL}/rooms/claim-seat', { room_id: roomId, side, seat_number: seatNum, room_code: roomData.room_code }, { headers: { Authorization: `Bearer ${token}` } });
       fetchParticipants(); 
     } catch (err) { toast.error(err.response?.data?.msg || "Gagal duduk"); }
   };

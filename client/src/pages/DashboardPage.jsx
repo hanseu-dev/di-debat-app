@@ -5,6 +5,7 @@ import { LogOut, Users, Radio, Play, Plus, X, ArrowRight, MessageSquare, Globe, 
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
+import { API_URL } from '../config';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -34,7 +35,9 @@ const DashboardPage = () => {
 
   const fetchMotions = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/motions');
+      const res = await axios.get(`${API_URL}/motions`, {
+    headers: { Authorization: `Bearer ${token}` }
+      });
       setMotions(res.data);
     } catch (err) {
       console.error("Gagal load mosi", err);
@@ -55,13 +58,12 @@ const DashboardPage = () => {
           return;
       }
 
-      const res = await axios.post('http://localhost:3000/motions/create', 
-        { 
-            topic: newMotion.topic,
-            description: newMotion.description
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.post(`${API_URL}/motions`, {
+            topic: newTopic,
+            description: newDesc
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
       
       toast.success("Mosi berhasil dibuat!");
       setShowCreateModal(false);
@@ -77,7 +79,7 @@ const DashboardPage = () => {
     if(!joinCode) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/rooms/join', 
+      const res = await axios.post(`${API_URL}/rooms/join`, 
         { room_code: joinCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );

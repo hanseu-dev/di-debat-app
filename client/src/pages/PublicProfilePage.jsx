@@ -37,7 +37,7 @@ const PublicProfilePage = () => {
   useEffect(() => {
     const fetchPublicProfile = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/users/${userId}/public`);
+        const res = await axios.get(`${API_URL}/users/${userId}/public`);
         setData(res.data);
         setLoading(false);
       } catch (err) {
