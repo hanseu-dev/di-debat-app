@@ -59,8 +59,8 @@ const DashboardPage = () => {
       }
 
       await axios.post(`${API_URL}/motions`, {
-            topic: newTopic,
-            description: newDesc
+            topic: newMotion,
+            description: newMotion.description
         }, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -79,7 +79,7 @@ const DashboardPage = () => {
     if(!joinCode) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/rooms/join', 
+      const res = await axios.post(`${API_URL}/rooms/join`, 
         { room_code: joinCode },
         { headers: { Authorization: `Bearer ${token}` } }
       );
