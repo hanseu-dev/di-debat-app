@@ -302,7 +302,7 @@ app.get('/rooms/public', async (req, res) => {
 
 app.get('/rooms/id/:roomId', async (req, res) => {
   try {
-    const { roomId } = req.params;
+    const {roomId} = req.params;
     const result = await pool.query(`SELECT id, room_code, topic, status, config, host_user_id, is_locked, is_public, ai_verdict FROM rooms WHERE id = $1`, [roomId]);
     if (result.rows.length === 0) return res.status(404).json({ msg: "Room tidak ditemukan" });
     res.json(result.rows[0]);
