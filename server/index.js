@@ -57,84 +57,85 @@ function generateRoomCode() {
 }
 
 // --- FUNGSI CORE AI & UPDATE SKOR (Digunakan Otomatis & Manual) ---
+// --- FUNGSI CORE AI (DEBUG VERSION) ---
 async function processDebateResult(room_code) {
-    console.log(`🤖 Memproses Hasil Debat: ${room_code}`);
+    console.log(`\n🤖 [AI START] Memulai proses untuk Room: ${room_code}`);
     
-    // 1. Ambil Data Room
-    const roomRes = await pool.query(`SELECT id, topic, status FROM rooms WHERE room_code = $1`, [room_code]);
-    if (roomRes.rows.length === 0) return;
-    const room = roomRes.rows[0];
-
-    // 2. Beritahu Client: Loading...
-    io.to(room_code).emit('analysis_started');
-
-    // 3. Ambil Argumen
-    const argsRes = await pool.query(`SELECT side, content, round_number FROM arguments WHERE room_id = $1 ORDER BY round_number ASC, created_at ASC`, [room.id]);
-    
-    if (argsRes.rows.length === 0) {
-        io.to(room_code).emit('ai_result_published', { content: "### ❌ Error\nBelum ada argumen untuk dianalisis." });
-        return;
-    }
-
-    // 4. Jalankan Logic AI
-    const maxRound = Math.max(...argsRes.rows.map(a => a.round_number || 1));
-    const result = await runDebateAnalysis(argsRes.rows, room.topic, maxRound);
-    
-    // 5. Normalisasi Pemenang
-    let winnerSide = 'DRAW';
-    let rawWinner = result.winner ? result.winner.toUpperCase() : 'DRAW';
-    if (rawWinner.includes('PRO') || rawWinner.includes('GOV')) winnerSide = 'PRO';
-    else if (rawWinner.includes('CONTRA') || rawWinner.includes('OPP')) winnerSide = 'CONTRA';
-    else if (rawWinner.includes('SERI') || rawWinner.includes('DRAW')) winnerSide = 'DRAW';
-
-    console.log(`🏆 Keputusan AI untuk ${room_code}: ${winnerSide}`);
-
-    // 6. Update Database (Transaction)
-    const client = await pool.connect();
     try {
-        await client.query('BEGIN');
+        // 1. Cek Room
+        const roomRes = await pool.query(`SELECT id, topic, status FROM rooms WHERE room_code = $1`, [room_code]);
+        if (roomRes.rows.length === 0) {
+            console.log("❌ [AI FAIL] Room tidak ditemukan di DB");
+            return;
+        }
+        const room = roomRes.rows[0];
+        console.log(`✅ [AI STEP 1] Room ketemu: ${room.topic} (ID: ${room.id})`);
 
-        // A. Simpan Verdict di Room
-        await client.query(`UPDATE rooms SET ai_verdict = $1, winner_side = $2 WHERE id = $3`, [result.markdown, winnerSide, room.id]);
+        // 2. Beritahu Client: Loading...
+        io.to(room_code).emit('analysis_started');
+
+        // 3. Ambil Argumen
+        const argsRes = await pool.query(`SELECT side, content, round_number FROM arguments WHERE room_id = $1 ORDER BY round_number ASC, created_at ASC`, [room.id]);
         
-        // B. Update Statistik User (Wins/Losses/Draws) dengan COALESCE (Aman dari NULL)
-        if (winnerSide !== 'DRAW') {
-            // Tambah WIN
-            const winRes = await client.query(`
-                UPDATE users SET wins = COALESCE(wins, 0) + 1 
-                WHERE id IN (SELECT user_id FROM participants WHERE room_id = $1 AND side = $2 AND role = 'DEBATER')
-            `, [room.id, winnerSide]);
-            
-            // Tambah LOSS
-            const loserSide = winnerSide === 'PRO' ? 'CONTRA' : 'PRO';
-            const lossRes = await client.query(`
-                UPDATE users SET losses = COALESCE(losses, 0) + 1 
-                WHERE id IN (SELECT user_id FROM participants WHERE room_id = $1 AND side = $2 AND role = 'DEBATER')
-            `, [room.id, loserSide]);
-            
-            console.log(`📊 Stats Updated: +Win (${winRes.rowCount}), +Loss (${lossRes.rowCount})`);
-        } else {
-            // Tambah DRAW
-            const drawRes = await client.query(`
-                UPDATE users SET draws = COALESCE(draws, 0) + 1 
-                WHERE id IN (SELECT user_id FROM participants WHERE room_id = $1 AND role = 'DEBATER')
-            `, [room.id]);
-            console.log(`📊 Stats Updated: +Draw (${drawRes.rowCount})`);
+        console.log(`🔍 [AI STEP 2] Mengambil argumen. Jumlah: ${argsRes.rows.length}`);
+
+        if (argsRes.rows.length === 0) {
+            console.warn("⚠️ [AI WARN] Tidak ada argumen untuk dianalisis. Membatalkan AI.");
+            io.to(room_code).emit('ai_result_published', { content: "### ❌ Gagal Analisis\nBelum ada argumen yang masuk. Debat ini kosong." });
+            return;
         }
 
-        await client.query('COMMIT');
-    } catch (e) {
-        await client.query('ROLLBACK');
-        console.error("❌ Gagal Update Database:", e);
-        io.to(room_code).emit('ai_result_published', { content: "### ⚠️ Error Database\nGagal menyimpan skor." });
-        throw e;
-    } finally {
-        client.release();
-    }
+        // 4. Jalankan Logic AI (Disini biasanya error)
+        console.log("⏳ [AI STEP 3] Mengirim data ke AI Service (OpenAI/Gemini)... Tunggu sebentar...");
+        
+        const maxRound = Math.max(...argsRes.rows.map(a => a.round_number || 1));
+        
+        // PANGGIL SERVICE
+        const result = await runDebateAnalysis(argsRes.rows, room.topic, maxRound);
+        
+        if (!result) {
+            throw new Error("AI Service mengembalikan null/undefined");
+        }
 
-    // 7. Kirim Hasil Akhir ke Frontend
-    io.to(room_code).emit('ai_result_published', { content: result.markdown });
-    console.log(`✅ Proses Selesai untuk ${room_code}`);
+        console.log("✅ [AI STEP 4] AI Selesai! Panjang respon: ", result.markdown?.length);
+
+        // 5. Update Database
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+            
+            // Tentukan pemenang (String parsing sederhana)
+            let winnerSide = 'DRAW';
+            let rawWinner = result.winner ? result.winner.toUpperCase() : 'DRAW';
+            if (rawWinner.includes('PRO') || rawWinner.includes('GOV')) winnerSide = 'PRO';
+            else if (rawWinner.includes('CONTRA') || rawWinner.includes('OPP')) winnerSide = 'CONTRA';
+            
+            console.log(`🏆 [AI STEP 5] Pemenang: ${winnerSide}`);
+
+            await client.query(`UPDATE rooms SET ai_verdict = $1, winner_side = $2 WHERE id = $3`, [result.markdown, winnerSide, room.id]);
+            await client.query('COMMIT');
+            console.log("💾 [AI STEP 6] Database updated.");
+
+        } catch (dbErr) {
+            await client.query('ROLLBACK');
+            console.error("❌ [AI DB ERROR] Gagal simpan ke DB:", dbErr);
+            throw dbErr;
+        } finally {
+            client.release();
+        }
+
+        // 6. Kirim ke Frontend
+        console.log("🚀 [AI FINAL] Mengirim hasil ke Frontend via Socket...");
+        io.to(room_code).emit('ai_result_published', { content: result.markdown });
+
+    } catch (err) {
+        console.error("❌❌ [AI FATAL ERROR]:", err);
+        console.error("Detail Error:", err.response?.data || err.message);
+        
+        io.to(room_code).emit('ai_result_published', { 
+            content: `### ⚠️ Maaf, Terjadi Kesalahan Sistem\n\n**Error:** ${err.message}\n\nSilakan coba lagi tombol "Analisis Ulang".` 
+        });
+    }
 }
 
 
