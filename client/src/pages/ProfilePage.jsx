@@ -40,7 +40,8 @@ const ProfilePage = () => {
           return;
       }
       const res = await axios.get(`${API_URL}/users/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true" }
       });
       setProfile(res.data);
       setLoading(false);

@@ -96,7 +96,9 @@ const MotionPage = () => {
             speech_duration: parseInt(newRoom.speech_duration) * 60,
             allow_spectator_join: newRoom.allow_spectator_join 
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+     } }
       );
       
       toast.success("Room berhasil dibuat!");

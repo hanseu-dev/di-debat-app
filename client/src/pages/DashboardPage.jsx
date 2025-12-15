@@ -82,7 +82,8 @@ const DashboardPage = () => {
             topic: newMotion.topic, 
             description: newMotion.description
         }, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true" }
         });
       
       toast.success("Mosi berhasil dibuat!");
@@ -111,7 +112,8 @@ const DashboardPage = () => {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/rooms/join`, 
         { room_code: joinCode },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true" } }
       );
       toast.success(`Masuk ke Arena ${joinCode}`);
       navigate(`/room/${res.data.room_id}`);
