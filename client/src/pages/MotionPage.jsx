@@ -49,7 +49,10 @@ const MotionPage = () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_URL}/motions/${id}`, {
-         headers: { Authorization: `Bearer ${token}` }
+         headers: { Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true"
+       }
+         
       });
       
       // SAFETY CHECK: Pastikan backend mengirim struktur yang benar
