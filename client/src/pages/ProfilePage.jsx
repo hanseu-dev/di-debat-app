@@ -5,6 +5,7 @@ import { ArrowLeft, User, Mail, Calendar, Trophy, Activity, Clock, Hash, Shield,
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
+import { API_URL } from '../config';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
