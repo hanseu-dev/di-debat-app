@@ -9,9 +9,6 @@ let poolConfig = {};
 if (connectionString) {
   poolConfig = {
     connectionString,
-    // Supabase requires SSL. In many Node environments you must disable
-    // certificate verification (rejectUnauthorized: false) unless you
-    // provide a CA bundle. This is common for Heroku/Supabase setups.
     ssl: {
       rejectUnauthorized: false
     }
