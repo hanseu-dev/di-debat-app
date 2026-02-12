@@ -31,7 +31,7 @@ let roomTimeouts = {};
 app.use(cors({
     origin: '*', // <--- GANTI JADI BINTANG (Artinya: Semua boleh masuk)
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true // (Catatan: kalau error, coba hapus baris credentials ini nanti)
+    // credentials: true // (Catatan: kalau error, coba hapus baris credentials ini nanti)
 }));
 app.use(express.json()); 
 
