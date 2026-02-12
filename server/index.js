@@ -29,7 +29,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'rahasia_negara_di_debat';
 let roomTimeouts = {}; 
 
 app.use(cors({
-    origin: '*', // <--- GANTI JADI BINTANG (Artinya: Semua boleh masuk)
+    origin: 'https://di-debat-app-uv1w6i8c31.edgeone.dev', // <--- GANTI JADI BINTANG (Artinya: Semua boleh masuk)
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true // (Catatan: kalau error, coba hapus baris credentials ini nanti)
 }));
