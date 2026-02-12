@@ -9,6 +9,7 @@ import MotionPage from './pages/MotionPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import PublicProfilePage from './pages/PublicProfilePage';
 
+
 // Komponen Pelindung (Hanya boleh masuk kalau punya Token)
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
